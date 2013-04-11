@@ -3,36 +3,38 @@
 //                    Teaching Assistant: Darcy Best
 // Written By: Camara Lerner
 // Problem number: 4564 - Balance
-// Description: 
+// Description: I follow the rules mentioned in the question very carefully
 //*****************************************************************************
 
 #include <iostream>
+#include <iomanip>
 using namespace std;
 
 int main() {
 
-   // after a term deduct a fixed administrative cost, and a fee percentage of
-   // the amount of at the beginning of the term. Also add the return
-   // percentage (+ or -) (if below zero at any time leave it at zero)
-
-   // rebalancing occurs every NREBALANCE terms, to redistribute money
-   // according to the original ratios. Note that if all instruments drop
-   // to zero, they will all remain closed for the remaining terms.
-
-   // report the ending value in each instrument(b/f rebalancing)
-   // (do not round intermediate values)
-
    // numInstrument is at most 10
    // numTerm is at most 20
    int numInstrument, numTerm, rebalance;
-   double info[3][10];
    // 0 = fixed_fee, 1 = percentage_fee, 2 = principal_start
-   double returns[10][20];
-   while(cin >> numInstrument >> numTerm >> numBalance) {
+   double info[3][10];
+   double ratios[10];
+   double returns[20][10];
+   while(cin >> numInstrument >> numTerm >> rebalance) {
 
       for(int i = 0; i < 3; ++i) {
 	 for(int j = 0; j < numInstrument; ++j) {
 	    cin >> info[i][j]; // read in Fees and principal start
+	 }
+      }
+      {  // setting the ratios for each numInstrument
+	 double total = 0.0;
+	 for(int i = 0; i < numInstrument; ++i) {
+	    if(info[2][i] > 0) {
+	       total += info[2][i];
+	    }
+	 }
+	 for(int i = 0; i < numInstrument; ++i) {
+	    ratios[i] = info[2][i] / total;
 	 }
       }
 
@@ -44,15 +46,44 @@ int main() {
 
       // calculate the term price principal_end
       // have to loop through the terms and calculate principal
-      for() {
+      for(int i = 0; i < numTerm; ++i) {
          // have to loop throught the instruments to calculate the returns
-            // taking off the adminstration fee and the percentage off and
-	    // then add the return
-            // check that you are above zero, and you are stay there
-         // have your return
-	 // check for the rebalance and do if needed
+
+         // check for the rebalance and do if needed
+	 if((i % rebalance) == 0 && i != 0) {
+	    double total = 0.0;
+	    for(int i = 0; i < numInstrument; ++i) {
+	       if(info[2][i] > 0) {
+		     total += info[2][i];
+	       }
+	    }
+	    for(int i = 0; i < numInstrument; ++i) {
+	       info[2][i] = ratios[i] * total;
+	       }
+	 }
+	 for(int j = 0; j < numInstrument; ++j) {
+	    // adds the return and
+	    // then takes off the adminstration fee and
+	    // the percentage off
+	    info[2][j] = (1.0 + returns[i][j]) * info[2][j]
+	       - info[2][j] * info[1][j]
+	       - info[0][j];
+	    // check that you are above zero, and if not puts you there
+	    if(info[2][j] < 0.0) {
+	       info[2][j] = 0.0;
+	    }
+	 }
       }
-      
+
+      cout << fixed << setprecision(2);
+      // output the returns
+      for(int i = 0; i < numInstrument; ++i) {
+	 if(i != 0 ) {
+	    cout << " ";
+	 }
+	 cout << info[2][i];
+      }
+      cout << endl;
    }
    
    return 0;
