@@ -124,14 +124,25 @@ int main(){
 	 cin >> towers[i].centre.x >> towers[i].centre.y >> towers[i].radius;
 	 int num = intersect_iline_circle(path, towers[i], a, b);
 /*	 cout << "line intersect: " << a.x << " " << a.y << " " << b.x << " "
-	      << b.y << endl;
-*/	 if(num == 1) {
+	 << b.y << endl;
+	 
+*/
+	 if(num == 1) {
 	    if(within(b, path)) {
-	       coverage[j].first.first = coverage[j].second.first = b.x;
-	       coverage[j].first.second = coverage[j].second.second = b.y;
+	       coverage[j].first.first = coverage[j].second.first = a.x;
+	       coverage[j].first.second = coverage[j].second.second = a.y;
 	       j++;
 	    }
 	 } else if(num == 2) {
+	    if(a.x < b.x) {
+	       Point c;
+	       c.x = a.x;
+	       c.y = a.y;
+	       a.x = b.x;
+	       a.y = b.y;
+	       b.x = c.x;
+	       b.y = c.y;
+	    }
 	    if(within(b, path) || within(a, path)) {
 	       if(within(b, path)) {
 		  coverage[j].first.first = b.x;
@@ -154,6 +165,7 @@ int main(){
       }
       // sorting the list of lines
       sort(coverage, coverage + n);
+      
       // getting rid of the overlapping areas
       for(int i = 0; i < n; ++i) {
 	 for(int j = i + 1; j < n; ++j) {
@@ -165,7 +177,7 @@ int main(){
 	    }
 	 }
       }
-
+      
       double distance = 0.0;
       for(int i = 0; i < n; ++i) {
 	 distance += dist(coverage[i]);
