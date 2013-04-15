@@ -117,44 +117,56 @@ int main(){
       /* cout << "path: " << path.p1.x << " " << path.p1.y << " " << path.p2.x
 	   << " " << path.p2.y << endl;
       */
+      if(path.p1.x > path.p2.x) {
+	 Point c;
+	 c.x = path.p1.x;
+	 c.y = path.p1.y;
+	 path.p1.x = path.p2.x;
+	 path.p1.y = path.p2.y;
+	 path.p2.x = c.x;
+	 path.p2.y = c.y;
+      }
       int j = 0;
       Point a, b;
       // reads in the towers and determines where they cover the path
       for(int i = 0; i < n; ++i) {
 	 cin >> towers[i].centre.x >> towers[i].centre.y >> towers[i].radius;
+	 a.x = a.y = b.x = b.y = -200.0;
 	 int num = intersect_iline_circle(path, towers[i], a, b);
-/*	 cout << "line intersect: " << a.x << " " << a.y << " " << b.x << " "
-	 << b.y << endl;
+	 //cout << "line intersect: " << a.x << " " << a.y << " " << b.x << " "
+	 //<< b.y << endl;
 	 
-*/
+
 	 if(num == 1) {
 	    if(within(b, path)) {
+	       //   cout << "input: " << a.x << " " << a.y << endl;
 	       coverage[j].first.first = coverage[j].second.first = a.x;
 	       coverage[j].first.second = coverage[j].second.second = a.y;
 	       j++;
 	    }
 	 } else if(num == 2) {
-	    if(a.x < b.x) {
+	    if(b.x < a.x) {
 	       Point c;
-	       c.x = a.x;
-	       c.y = a.y;
-	       a.x = b.x;
-	       a.y = b.y;
-	       b.x = c.x;
-	       b.y = c.y;
+	       c.x = b.x;
+	       c.y = b.y;
+	       b.x = a.x;
+	       b.y = a.y;
+	       a.x = c.x;
+	       a.y = c.y;
 	    }
-	    if(within(b, path) || within(a, path)) {
-	       if(within(b, path)) {
-		  coverage[j].first.first = b.x;
-		  coverage[j].first.second = b.y;
+	    if(within(a, path) || within(b, path)) {
+	       // cout << "input: " << a.x << " " << a.y << endl;
+	       if(within(a, path)) {
+		  coverage[j].first.first = a.x;
+		  coverage[j].first.second = a.y;
 	       } else {
 		  coverage[j].first.first = path.p1.x;
 		  coverage[j].first.second = path.p1.y;
 	       }
 	       
-	       if(within(a, path)) {
-		  coverage[j].second.first = a.x;
-		  coverage[j].second.second = a.y;
+	       if(within(b, path)) {
+		  coverage[j].second.first = b.x;
+		  coverage[j].second.second = b.y;
 	       } else {
 		  coverage[j].second.first = path.p2.x;
 		  coverage[j].second.second = path.p2.y;
@@ -163,21 +175,50 @@ int main(){
 	    }
 	 }
       }
+
+      n = j;
       // sorting the list of lines
       sort(coverage, coverage + n);
-      
+
+      /*
+      for(int i = 0; i < n; ++i) {
+	 cout << coverage[i].first.first << " " << coverage[i].second.first
+	      << endl;
+	      }
+      */
+
       // getting rid of the overlapping areas
       for(int i = 0; i < n; ++i) {
+/*	 if(coverage[i].first.first - EPS < path.p1.x ||
+	    coverage[i].second.first - EPS > path.p2.x ) {
+	    cout << "i.p1.x: " << path.p1.x << " "
+		 <<  coverage[i].first.first << endl;
+	    cout << " i.p2.x: " << path.p2.x << " "
+		 << coverage[i].second.first << endl;
+	 }
+*/
 	 for(int j = i + 1; j < n; ++j) {
 	    if(within(coverage[j].first, coverage[i])) {
-	       coverage[i].second.first = coverage[j].second.first;
-	       coverage[i].second.second = coverage[j].second.second;
-	       coverage[j].first.first = coverage[j].first.second =
-		  coverage[j].second.first = coverage[j].second.second = 0;
+	       if(coverage[i].second.first < coverage[j].second.first) {
+
+		  coverage[i].second.first = coverage[j].second.first;
+		  coverage[i].second.second = coverage[j].second.second;
+	       }
+	       coverage[j].first.first =
+		  coverage[j].first.second =
+		  coverage[j].second.first =
+		  coverage[j].second.second = -200;
+	       
 	    }
 	 }
       }
-      
+
+      cout << "next" << endl;
+      for(int i = 0; i < n; ++i) {
+	 cout << coverage[i].first.first << " " << coverage[i].second.first
+	      << endl;
+      }
+    
       double distance = 0.0;
       for(int i = 0; i < n; ++i) {
 	 distance += dist(coverage[i]);

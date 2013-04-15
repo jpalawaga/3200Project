@@ -17,7 +17,7 @@ double Dist_sqr( const double first[2], const double second[2]) {
    return x*x + y*y;
 }
 
-double Area_sqr( const double door[2], const double first[2],
+double Area( const double door[2], const double first[2],
 		 const double second[2]) {
    
    double a = Dist_sqr(door, first);
@@ -33,7 +33,7 @@ double Area_sqr( const double door[2], const double first[2],
   }
 */
    
-   return (2.0*a*b - a*a + 2.0*a*c - c*c + 2.0*b*c - b*b) / 16.0;
+   return 1.0 / 4.0 * sqrt(2.0*a*b - a*a + 2.0*a*c - b*b + 2.0*b*c - c*c);
 }
 
 int main() {
@@ -44,9 +44,8 @@ int main() {
    double answer[100][2];
    while(cin >> width >> height >> door >> workers && (width != 0 || height != 0
 	    || door != 0 || workers != 0)) {
-      double eqArea_sqr = width * height / (double) workers;
-      eqArea_sqr *= eqArea_sqr;
-      cout << eqArea_sqr << endl;
+      double eqArea = width * height / (double) workers;
+      cout << eqArea << endl;
       
       coord[0][0] = door;
       coord[0][1] = 0;
@@ -61,7 +60,7 @@ int main() {
       for(int i = 1; i <= 1000 * height; ++i) {
 	 coord[index][0] = width;
 	 coord[index][1] = (double)i / 1000.0;
-	 if(abs(Area_sqr(coord[0], coord[index - 1], coord[index]) - eqArea_sqr)
+	 if(abs(Area(coord[0], coord[index - 1], coord[index]) - eqArea)
 	    < 0.0005) {
 	    answer[answerIndex][0] = coord[index][0];
 	    answer[answerIndex++][1] = coord[index++][1];
@@ -71,7 +70,7 @@ int main() {
       // check if there is extra area inbetween the corner and the last point
       coord[index][0] = width;
       coord[index++][1] = height;
-      double extraArea = Area_sqr(coord[0], coord[index - 2], coord[index - 1]);
+      double extraArea = Area(coord[0], coord[index - 2], coord[index - 1]);
       cout << extraArea << endl;
       
       for(int i = 1000 * width - 1; i >= 0; --i) {
@@ -79,12 +78,12 @@ int main() {
 	 coord[index][1] = height;
 	 if(abs(coord[index][0] - 2.5) < 0.0001) {
 	    double temp[2] = {3.0, 5.0};
-	    cout << Area_sqr(coord[0], temp, coord[index]) << endl;
+	    cout << Area(coord[0], temp, coord[index]) << endl;
 
 	 }
 	 
-	 if(abs(Area_sqr(coord[0], coord[index - 1], coord[index]) -
-	     eqArea_sqr + extraArea) < 0.0005) {
+	 if(abs(Area(coord[0], coord[index - 1], coord[index]) -
+	     eqArea + extraArea) < 0.0005) {
 	    	    extraArea = 0;
 	    answer[answerIndex][0] = coord[index][0];
 	    answer[answerIndex++][1] = coord[index++][1];
@@ -93,14 +92,14 @@ int main() {
       // set special case for inbetween
       coord[index][0] = 0;
       coord[index++][1] = height;
-      extraArea += Area_sqr(coord[0], coord[index - 2], coord[index - 1]);
+      extraArea += Area(coord[0], coord[index - 2], coord[index - 1]);
       cout << extraArea << endl;
       
       for(int i = height * 1000; i >= 0 ; --i) {
 	 coord[index][0] = 0;
 	 coord[index][1] = (double)i / 1000.0;
-	 if(abs(Area_sqr(coord[0], coord[index - 1], coord[index]) -
-		eqArea_sqr + extraArea)  < 0.0005) {
+	 if(abs(Area(coord[0], coord[index - 1], coord[index]) -
+		eqArea + extraArea)  < 0.0005) {
 	    extraArea = 0;
 	    answer[answerIndex][0] = coord[index][0];
 	    answer[answerIndex++][1] = coord[index++][1];

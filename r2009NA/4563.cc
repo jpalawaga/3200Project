@@ -2,8 +2,9 @@
 // CPSC 3200          Professor: Howard Cheng
 //                    Teaching Assistant: Darcy Best
 // Written By: Camara Lerner
-// Problem number: 
-// Description: 
+// Problem number: 4563 XML
+// Description: Doing very careful string parsing.
+// I keep track of the start of the part of the string I am looking at and the length of the string that needs to be looked at
 //*****************************************************************************
 
 #include <iostream>
@@ -13,13 +14,14 @@
 #include <cstdio>
 using namespace std;
 
-/****
-     a should only be everything after the x
-****/
-bool hexNum(const string &a, string::size_type &index) {
-   //cout << a << endl;
+
+// a should only be everything after the x
+
+bool hexNum(const string &a, const int &start,
+	    const int &ln, string::size_type &index) {
+   // cout << a.substr(start, ln - 1) << endl;
    string::size_type j = 0;
-   for(string::size_type i = 0; i < a.size(); ++i) {
+   for(int i = start; i < start + ln; ++i) {
       if(   (a[i] >= '0' && a[i] <= '9')
 	 || (a[i] >= 'a' && a[i] <= 'f')
 	 || (a[i] >= 'A' && a[i] <= 'F')) {
@@ -32,53 +34,61 @@ bool hexNum(const string &a, string::size_type &index) {
       return false;
    } else {
       index += j + 1;
-      return true;
+      if(start + ln == (int)a.size()) {
+	 return true;
+      } else {
+	 return a[start + ln] == ';';
+      }
    }
 }
 
 // holds the info after the < and > symbols
-bool handleand(const string &a, string::size_type &index) {
-   if(a.empty()) return false;
-   //cout << a << endl;
-   if(a.substr(0, 2) == "lt" || a.substr() == "gt") {
-      index += 2;
-      return true;
-   } else if(a.substr(0,3) == "amp") {
+bool handleand(const string &a, const int &start,
+	       const int &ln, string::size_type &index) {
+   if(start >= start + ln) return false;
+   //cout << a.substr(start, ln - 1) << endl;
+   if(a.substr(start, 3) == "lt;"
+      || a.substr(start, 3) == "gt;") {
       index += 3;
       return true;
-   } else if(a[0] == 'x') {
+   } else if(a.substr(start, 4) == "amp;") {
+      index += 4;
+      return true;
+   } else if(a[start] == 'x') {
       ++index;//eat the x
-      if(a.size() <= 1) return false;
-      return hexNum(a.substr(1, a.size() - 1), index);//start past the x
+      if(ln <= 1) return false;
+      return hexNum(a, start + 1, ln - 1, index);//start past the x
    } else {
       return false;
    }
 }
 
-bool validTag(const string &a) {
-   for(string::size_type i = 0; i < a.size(); ++i) {
+bool validTag(const string &a, const int &start,
+	      const int &ln) {
+   for(int i = start; i < start + ln; ++i) {
       if(!islower(a[i]) && !isdigit(a[i])) return false;
    }
    return true;
 }
 
 // a holds the info between the < and > symbols
-bool handlelt(const string &a, stack<string> &context) {
-   if(a.empty()) return false;
-   cout << a << endl;
-   if(a[0] == '/') {
+bool handlelt(const string &a, const int &start,
+	      const int &ln, stack<string> &context) {
+   if(start >= start + ln) return false;
+   //cout << a << endl;
+   if(a[start] == '/') {
       if(context.empty()) return false;
-      if(a.substr(1, a.size() - 1) == context.top()) {
+      if(a.substr(start + 1, ln - 1) == context.top()) {
 	 context.pop();
 	 return true;
       } else {
 	 return false;
       }
-   } else if(a[a.size() - 1] == '/') {
-      return validTag(a.substr(0, a.size() - 1));
+   } else if(a[start + ln - 1] == '/') {
+      return validTag(a, start, ln - 1);
    } else {
-      if(validTag(a)) {
-	 context.push(a);
+      if(validTag(a, start, ln)) {
+	 context.push(a.substr(start, ln));
 	 return true;
       } else {
 	 return false;
@@ -88,18 +98,21 @@ bool handlelt(const string &a, stack<string> &context) {
 }
 
 int main() {
-   stack<string> context;
    string line;
-   bool valid = true;
    while(getline(cin, line) && cin.good()) {
+      bool valid = true;
+      stack<string> context;
       for(string::size_type i = 0; i < line.size(); ) {
 	 if(line[i] == '&') {
-	    valid = handleand(line.substr(i + 1, line.size() - i - 1), i);
+	    //cout << i << endl;
+	    valid = handleand(line, i + 1, line.size() - i - 1, i);
+	    //cout << i << endl;
 	 } else if(line[i] == '<') {
 	    string::size_type index = line.find('>', i);
-	    if(index == line.size()) valid = false;
-	    else {
-	       valid = handlelt(line.substr(i + 1, index - 1 - i),
+	    if(index == line.size()) {
+	       valid = false;
+	    } else {
+	       valid = handlelt(line, i + 1, index - 1 - i,
 				context);
 	       i = index + 1;
 	    }
