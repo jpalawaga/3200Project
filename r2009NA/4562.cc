@@ -19,6 +19,7 @@
 using namespace std;
 
 #define SQR(X) ((X) * (X))
+typedef pair<double, double> pdd;
 
 // How close to call equal
 const double EPS = 1e-7;
@@ -27,11 +28,18 @@ bool dEqual(double x,double y){
   return fabs(x-y) < EPS;
 }
 
-struct Point{
+class Point{
+public:
+   Point() {}
+   Point(const double &first, const double &second) : x(first), y(second)  {}
+   Point(const Point & me) : x(me.x), y(me.y) {}
    double x,y;
 };
 
-struct Line{
+class Line{
+public:
+   Line() {}
+   Line(const Point & first, const Point &second) : p1(first), p2(second) {}
   Point p1,p2;
 };
 
@@ -85,38 +93,63 @@ int intersect_iline_circle(Line l,Circle c,Point& ans1,Point& ans2){
   return 2;
 }
 
-bool within(const Point &a, const Line &path) {
-   return (a.x >= path.p1.x) && (a.x <= path.p2.x) &&
-      (a.y >= path.p1.y) && (a.y <= path.p2.y);
-}
-
-bool within(const pair<double, double> &a,
-	    const pair<pair<double, double>, pair<double, double> > &path) {
-   return (a.first >= path.first.first) && (a.first <= path.second.first) &&
-      (a.second >= path.first.second) && (a.second <= path.second.second);
+double dist(const Point &a, const Point &b) {
+   double x = (a.x - b.x);
+   double y = (a.y - b.y);
+   return sqrt(x*x + y*y);
 }
 
 double dist(const Line &path) {
-   double x = (path.p1.x - path.p2.x);
-   double y = (path.p1.y - path.p2.y);
+   return dist(path.p1, path.p2);
+}
+
+double dist(const pdd &a, const pdd &b) {
+   double x = (a.first - b.first);
+   double y = (a.second - b.second);
    return sqrt(x*x + y*y);
 }
 
-double dist(const pair<pair<double, double>, pair<double, double> > &path) {
-   double x = (path.first.first - path.second.first);
-   double y = (path.first.second - path.second.second);
-   return sqrt(x*x + y*y);
+double dist(const pair<pdd, pdd> &path) {
+   return dist(path.first, path.second);
 }
+
+bool within(const Point &a, const Line &path) {
+   return ((a.x > path.p1.x) || (fabs(a.x - path.p1.x) < EPS)) &&
+      ((a.x < path.p2.x) || (fabs(a.x - path.p2.x) < EPS)) &&
+      ((a.y < max(path.p1.y, path.p2.y)) ||
+       (fabs(a.y - max(path.p1.y, path.p2.y)) < EPS)) &&
+      ((a.y > min(path.p1.y, path.p2.y)) ||
+       (fabs(a.y - min(path.p1.y, path.p2.y)) < EPS));
+}
+
+bool within(const pdd &a, const pair<pdd, pdd> &path) {
+   return ((a.first > path.first.first) ||
+	   (fabs(a.first - path.first.first) < EPS)) &&
+      ((a.first < path.second.first) ||
+	 (fabs(a.first - path.second.first) < EPS)) &&
+      ((a.second  < max(path.first.second, path.second.second)) ||
+       (fabs(a.second - max(path.first.second, path.second.second)) < EPS)) &&
+      ((a.second > min(path.first.second, path.second.second)) ||
+       (fabs(a.second - min(path.second.second, path.first.second)) < EPS));
+}
+
+bool overall(const pair<pdd, pdd> &a, const Line &path) {
+   return (min(a.first.first, a.second.first) < min(path.p1.x, path.p2.x)) &&
+      (max(a.first.first, a.second.first) > max(path.p1.x, path.p2.x)) &&
+      (min(a.first.second, a.second.second) > min(path.p1.y, path.p2.y)) &&
+      (max(a.first.second, a.second.second) < max(path.p1.y, path.p2.y));
+}
+
+
 
 int main(){
-   Circle towers[100];
+   
+   Circle towers[101];
    int n;
    Line path;
-   pair< pair<double, double>, pair<double, double> > coverage[100];
+   pair<pdd, pdd> coverage[100];
    while(cin >> n >> path.p1.x >> path.p1.y >> path.p2.x >> path.p2.y) {
-      /* cout << "path: " << path.p1.x << " " << path.p1.y << " " << path.p2.x
-	   << " " << path.p2.y << endl;
-      */
+      
       if(path.p1.x > path.p2.x) {
 	 Point c;
 	 c.x = path.p1.x;
@@ -133,13 +166,9 @@ int main(){
 	 cin >> towers[i].centre.x >> towers[i].centre.y >> towers[i].radius;
 	 a.x = a.y = b.x = b.y = -200.0;
 	 int num = intersect_iline_circle(path, towers[i], a, b);
-	 //cout << "line intersect: " << a.x << " " << a.y << " " << b.x << " "
-	 //<< b.y << endl;
-	 
 
 	 if(num == 1) {
-	    if(within(b, path)) {
-	       //   cout << "input: " << a.x << " " << a.y << endl;
+	    if(within(a, path)) {
 	       coverage[j].first.first = coverage[j].second.first = a.x;
 	       coverage[j].first.second = coverage[j].second.second = a.y;
 	       j++;
@@ -155,7 +184,6 @@ int main(){
 	       a.y = c.y;
 	    }
 	    if(within(a, path) || within(b, path)) {
-	       // cout << "input: " << a.x << " " << a.y << endl;
 	       if(within(a, path)) {
 		  coverage[j].first.first = a.x;
 		  coverage[j].first.second = a.y;
@@ -171,8 +199,14 @@ int main(){
 		  coverage[j].second.first = path.p2.x;
 		  coverage[j].second.second = path.p2.y;
 	       }
-	       j++;
-	    }
+	       ++j;
+	    } else if(overall(coverage[j], path)) {
+	       coverage[j].first.first = path.p1.x;
+	       coverage[j].first.second = path.p1.y;
+	       coverage[j].second.first = path.p2.x;
+	       coverage[j].second.second = path.p2.y;
+	       ++j;
+	    } 
 	 }
       }
 
@@ -180,26 +214,13 @@ int main(){
       // sorting the list of lines
       sort(coverage, coverage + n);
 
-      /*
-      for(int i = 0; i < n; ++i) {
-	 cout << coverage[i].first.first << " " << coverage[i].second.first
-	      << endl;
-	      }
-      */
-
+      
       // getting rid of the overlapping areas
       for(int i = 0; i < n; ++i) {
-/*	 if(coverage[i].first.first - EPS < path.p1.x ||
-	    coverage[i].second.first - EPS > path.p2.x ) {
-	    cout << "i.p1.x: " << path.p1.x << " "
-		 <<  coverage[i].first.first << endl;
-	    cout << " i.p2.x: " << path.p2.x << " "
-		 << coverage[i].second.first << endl;
-	 }
-*/
 	 for(int j = i + 1; j < n; ++j) {
 	    if(within(coverage[j].first, coverage[i])) {
-	       if(coverage[i].second.first < coverage[j].second.first) {
+	       if(dist(coverage[i].first, coverage[j].second)
+		  > dist(coverage[i])) {
 
 		  coverage[i].second.first = coverage[j].second.first;
 		  coverage[i].second.second = coverage[j].second.second;
@@ -213,12 +234,6 @@ int main(){
 	 }
       }
 
-      cout << "next" << endl;
-      for(int i = 0; i < n; ++i) {
-	 cout << coverage[i].first.first << " " << coverage[i].second.first
-	      << endl;
-      }
-    
       double distance = 0.0;
       for(int i = 0; i < n; ++i) {
 	 distance += dist(coverage[i]);
@@ -228,22 +243,5 @@ int main(){
       
    }
    
-/*
-  Line L;
-  Circle C;
-  Point a1,a2;
-  
-  cin >> L.p1.x >> L.p1.y >> L.p2.x >> L.p2.y;
-  cin >> C.centre.x >> C.centre.y >> C.radius;
-	
-  int num = intersect_iline_circle(L,C,a1,a2);
-  if(num == 0)
-    cout << "NO INTERSECTION." << endl;
-  else if(num == 1)
-    cout << "ONE INTERSECTION:  (" << a1.x << "," << a1.y << ")" << endl;
-  else if(num == 2)
-    cout << "TWO INTERSECTIONS: (" << a1.x << "," << a1.y << ")" 
-	 << "(" << a2.x << "," << a2.y << ")" << endl;
-   */
   return 0;
 }
