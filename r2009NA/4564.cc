@@ -8,64 +8,96 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <utility>
 using namespace std;
 
+int table[151][151];
+string a;
+
 // x and y are solvable puzzles and A is a capital letter
-bool solvable(const string &a, const int &start, const int &len,
-	      map<string, bool> &table) {
-   map<string, bool>::iterator it = table.find(a);
-   if(it != table.end()) {
-      return it->second;
+bool solvable(const int &start, const int &len) {
+   if(table[start][len] >= 0) {
+      return (bool)table[start][len];
    }
    if(len == 0) {
       return true;
    } else if(len == 1) {
       return false;
+   } else if(len == 2) {
+      //cout << a.substr(start, len) << endl;
+      //cout << "finished with " << (a[start] == a[start + 1]) << endl;
+      return a[start] == a[start + 1];
+   } else if(len == 3) {
+      //cout << a.substr(start, len) << endl;
+      //cout << "finished with "
+      //<< (a[start] == a[start + 1] && a[start + 1] == a[start + 2])
+      //<< endl;
+      return (a[start] == a[start + 1]) && (a[start] == a[start + 2]);
    }
-
-   bool cases = false;
-   // AxA
-   if(a[start] == a[start + len]) {
-      string::size_type next = a.find(a[start], start);
+   if(a[start] == a[start + len - 1]) {
       // AxAyA
-      if(next < start + len) {
-	 cases |= solvable(a, start + 1, next - start - 2, table)
-	    && solvable(a, next + 1, len - next - 2, table);
-	 if(cases) {
-	    return table[a] = true;
+      int next = a.find(a[start], start + 1);
+      while(next < start + len - 1) {
+	 //cout << a.substr(start, len) << endl;
+	 //cout << a.substr(start + 1, next - start - 1) << " "
+	 //    << a.substr(next + 1, len - next - 2) << endl;
+	 // cout << "AxAyA" << endl;
+	 if(solvable(start + 1, next - start - 1)) {
+	    if(solvable(next + 1, start + len - next - 2)) {
+
+	       //    cout << "finish with true" << endl;
+	       return (bool)(table[start][len] =
+			     true);
+	    }
 	 }
+	 next = a.find(a[start], next + 1);
+	 //cout << "next: " <<  next << endl;
       }
       // AxA
-      else {
-	 cases |= solvable(a, start + 1, len - 2, table);
-      }
-      if(cases) {
-	 return table[a] = true;
+      //cout << "AxA" << endl;
+      if(solvable(start + 1, len - 2)) {
+	 //cout << a.substr(start, len) << endl;
+	 //cout << "finish with true" << endl;
+	 return (bool)(table[start][len] =
+		       true);
       }
    }
-   
+
+   // loop through this another way
    for(int i = 1; i < len; ++i) {
-      cout << a.substr(start, i) << " " << a.substr(start + i, len - i) << endl;
-      cases |= (solvable(a, start, i, table)
-		&& solvable(a, start + i, len - i, table));
-      cout << boolalpha << cases << endl;
-      if(cases) {
-	 break;
+      // cout << "xy" << endl;
+      if(solvable(start, i)) {
+	 if(solvable(start + i, len - i)) {
+	    //cout << a.substr(start, len) << endl;
+	    //cout << "finish with true" << endl;
+	    return (bool)(table[start][len] =
+			  true);
+	 }
       }
    }
-   return table[a] = cases;
+   //cout << a.substr(start, len) << endl;
+   //cout << "finish with false" << endl;
+   return (bool)(table[start][len] = false);
 }
 
 int main() {
 
-   string str;
-   while(cin >> str) {
-      map<string, bool> table;
-      if(solvable(str, 0, str.length(), table)) {
-	 cout << "solvable" << endl;
-      } else {
-	 cout << "unsolvable" << endl;
+   while(cin >> a) {
+      for(int i = 0; i < 151; ++i) {
+	 for(int j = 0; j < 151; ++j) {
+	    table[i][j] = -1;
+	 }
       }
+      if(solvable(0, a.length())) {
+	 //cout << endl;
+	 cout << "solvable" << endl;
+	 //cout << endl;
+      } else {
+	 //cout << endl;
+	 cout << "unsolvable" << endl;
+	 //cout << endl;
+      }
+      a.clear();
    }
    return 0;
 }
