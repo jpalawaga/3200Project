@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cctype>
+#include <algorithm>
 
 using namespace std;
 using namespace std::rel_ops;
@@ -218,21 +219,74 @@ int main() {
    Date start, land;
    pair<Date, Date> travel[100];
    while(cin >> start >> land) {
+      //cout << "start: " << start << " land: " << land << endl;
       int n;
       cin >> n;
       for(int i = 0; i < n; ++i) {
 	 Date strt, end;
-	 cin >> str >> end;
+	 cin >> strt >> end;
 	 travel[i] = make_pair(strt, end);
+	 // cout << "travel start: " << travel[i].first << " end: "
+	 //    << travel[i].second << endl;
       }
-
+      sort(travel, travel + n);
       // multiply any day 730 before the landing date is counted as one and
       // day after the landing date is twice the day
-
+      Date bfLand = land;
+      bfLand.addDay(-730);
       // remember to do integer divison before comparing with the needed 1095
       // days also make sure you are not looking over 1460 days behind
       // application date
+      int travelDays = 0;
+      // keep track of the latest date so far
+      if(n > 0) {
+	 Date LastDayOfTravel = travel[0].second;
+      }
+      Date next = land;
+      Date application;
+      for(int i = 0; i < n; ++i) {
+	 if(travel[i].second < land) {
+	    if(travel[i].first >= bfLand) {
+	       travelDays += travel[i].second.daysFromStart()
+		  - travel[i].first.daysFromStart() + 1;
+	    } else {
+	       travelDays += travel[i].second.daysFromStart()
+		  - bfLand.daysFromStart() + 1;
+	    }
+	 } else {
+	    if(travel[i].first < bfLand) {
+	       travelDays += (land.daysFromStart() - bfLand.daysFromStart())
+		  + 2*(travel[i].second.daysFromStart()
+		       - land.daysFromStart() + 1);
+	    } else if(travel[i].first < land) {
+	       travelDays += (land.daysFromStart()
+			      - travel[i].first.daysFromStart())
+		  + 2*(travel[i].second.daysFromStart()
+		       - land.daysFromStart() + 1);
+	    } else {
+	       travelDays += 2*(travel[i].second.daysFromStart()
+				- travel[i].first.daysFromStart());
+	    }
+	 }
+	 if((2*(travel[i].second.daysFromStart() - land.daysFromStart() + 1)
+	     + (land.daysFromStart() - bfLand.daysFromStart()) - travelDays)
+	    > 1095) {
+	    application = travel[i].second;
+	    application.addDay();
+	    break;
+	 }
+	 next = travel[i].second;
+	 next.addDay();
+      }
+      cout << "travelDays: " << travelDays / 2 << endl;
+      next.addDay(1095 - (2*(next.daysFromStart() - land.daysFromStart())
+			  + (land.daysFromStart() - bfLand.daysFromStart())
+			  - travelDays) / 2);
+		  
+      cout << next << endl;
    }
    
    return 0;
 }
+
+
