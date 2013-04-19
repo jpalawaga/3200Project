@@ -2,8 +2,9 @@
 // CPSC 3200          Professor: Howard Cheng
 //                    Teaching Assistant: Darcy Best
 // Written By: Camara Lerner
-// Problem number: 
-// Description: 
+// Problem number: 4564 - Clickomania
+// Description: I use the rules they give us and I store the results of already
+// computed strings in an array
 //*****************************************************************************
 #include <iostream>
 #include <string>
@@ -20,13 +21,9 @@ bool solvable(const int &start, const int &len) {
       return (bool)table[start][len];
    }
    if(len == 0) {
-      return true;
+      return true; // (bool)(table[start][len] = 1);
    } else if(len == 1) {
-      return false;
-   } else if(len == 2) {
-      return a[start] == a[start + 1];
-   } else if(len == 3) {
-      return (a[start] == a[start + 1]) && (a[start] == a[start + 2]);
+      return false; //(bool)(table[start][len] = 0);
    }
    if(a[start] == a[start + len - 1]) {
       // AxAyA
@@ -48,7 +45,7 @@ bool solvable(const int &start, const int &len) {
    }
 
    // loop through this another way
-   for(int i = 1; i < len; ++i) {
+   for(int i = 1; i < len - 1; ++i) {
       if(solvable(start, i)) {
 	 if(solvable(start + i, len - i)) {
 	    return (bool)(table[start][len] =
@@ -66,6 +63,10 @@ int main() {
 	 for(int j = 0; j < 151; ++j) {
 	    table[i][j] = -1;
 	 }
+      }
+      for(int i = 0; i < 151; ++i) {
+	 table[i][0] = true;
+	 table[i][1] = false;
       }
       if(solvable(0, a.length())) {
 	 cout << "solvable" << endl;
