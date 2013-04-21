@@ -17,9 +17,7 @@
 #include <string>
 #include <utility>
 #include <iomanip>
-#include <sstream>
 #include <cctype>
-#include <algorithm>
 
 using namespace std;
 using namespace std::rel_ops;
@@ -198,13 +196,8 @@ struct Date {
 // right format
 istream& operator>>(istream &is, Date &d)
 {
-   string month, day;
-   getline(is, month, '/');
-   getline(is, day, '/');
-   istringstream issm(month), issd(day);
-   issm >> d.mm;
-   issd >> d.dd;
-   return is >> d.yyyy;
+   char c;
+   return is >> d.mm >> c >> d.dd >> c >> d.yyyy;
 }
 
 // print date in yyyy/mm/dd format
@@ -215,77 +208,63 @@ ostream& operator<< (ostream &os, const Date &d) {
   return os;
 }
 
+
+
 int main() {
    Date start, land;
-   pair<Date, Date> travel[100];
+   Date Svac[105];
+   Date Evac[105];
    while(cin >> start >> land) {
-      //cout << "start: " << start << " land: " << land << endl;
+      // cout << "start: " << start << " " << land << endl;
       int n;
       cin >> n;
       for(int i = 0; i < n; ++i) {
-	 Date strt, end;
-	 cin >> strt >> end;
-	 travel[i] = make_pair(strt, end);
-	 // cout << "travel start: " << travel[i].first << " end: "
-	 //    << travel[i].second << endl;
+	 cin >> Svac[i] >> Evac[i];
       }
-      sort(travel, travel + n);
-      // multiply any day 730 before the landing date is counted as one and
-      // day after the landing date is twice the day
-      Date bfLand = land;
-      bfLand.addDay(-730);
-      // remember to do integer divison before comparing with the needed 1095
-      // days also make sure you are not looking over 1460 days behind
-      // application date
-      int travelDays = 0;
-      // keep track of the latest date so far
-      if(n > 0) {
-	 Date LastDayOfTravel = travel[0].second;
+/*      for(int i = 0; i < n; ++i) {
+	 cout << "vac: " << Svac[i] << " " << Evac[i] << endl;
       }
-      Date next = land;
-      Date application;
-      for(int i = 0; i < n; ++i) {
-	 if(travel[i].second < land) {
-	    if(travel[i].first >= bfLand) {
-	       travelDays += travel[i].second.daysFromStart()
-		  - travel[i].first.daysFromStart() + 1;
-	    } else {
-	       travelDays += travel[i].second.daysFromStart()
-		  - bfLand.daysFromStart() + 1;
-	    }
-	 } else {
-	    if(travel[i].first < bfLand) {
-	       travelDays += (land.daysFromStart() - bfLand.daysFromStart())
-		  + 2*(travel[i].second.daysFromStart()
-		       - land.daysFromStart() + 1);
-	    } else if(travel[i].first < land) {
-	       travelDays += (land.daysFromStart()
-			      - travel[i].first.daysFromStart())
-		  + 2*(travel[i].second.daysFromStart()
-		       - land.daysFromStart() + 1);
-	    } else {
-	       travelDays += 2*(travel[i].second.daysFromStart()
-				- travel[i].first.daysFromStart());
+*/  
+      int dayTotal[20000];
+      int total = 0;
+      Date curr = Date(1980, 1, 1);
+      int begin = 0, end = 0;
+      while((total/2) < 1095) {
+//	 if (total > 0) cout << total/2 << endl;
+	 if(end - begin >= 1460) {
+	    total -= dayTotal[begin++];
+	 }
+	 bool isVac = false;
+	 for(int i = 0; i < n; ++i) {
+	    if(((Svac[i] < curr) || (Svac[i] == curr) )
+	       && ((curr < Evac[i]) || (curr == Evac[i]))) {
+	       isVac = true;
+	       dayTotal[end] = 0;
+	       curr.addDay();
 	    }
 	 }
-	 if((2*(travel[i].second.daysFromStart() - land.daysFromStart() + 1)
-	     + (land.daysFromStart() - bfLand.daysFromStart()) - travelDays)
-	    > 1095) {
-	    application = travel[i].second;
-	    application.addDay();
-	    break;
+	 if(!isVac) {
+	    if(curr < start) {
+	       dayTotal[end] = 0;
+	       curr.addDay();
+	    } else if(curr < land) {
+	       total += 1;
+	       dayTotal[end] = 1;
+	       curr.addDay();
+	    } else {
+	       total += 2;
+	       dayTotal[end] = 2;
+	       curr.addDay();
+	    }
 	 }
-	 next = travel[i].second;
-	 next.addDay();
+	 ++end;
       }
-      cout << "travelDays: " << travelDays / 2 << endl;
-      next.addDay(1095 - (2*(next.daysFromStart() - land.daysFromStart())
-			  + (land.daysFromStart() - bfLand.daysFromStart())
-			  - travelDays) / 2);
-		  
-      cout << next << endl;
+      for(int i = 0; i < 20000; ++i) {
+	 cout << dayTotal[i] << " ";
+      }
+ 
+   cout << curr << endl;
    }
-   
    return 0;
 }
 

@@ -19,68 +19,71 @@ int rows, cols;
 // holds the current row and column and a reference to the direction you just came from
 void move(int &r, int &c, int &pr) {
    for(int i = 1; i <= 8; ++i) {
-      if(board[r + dr[(pr + i) % 8]][c + dc[(pr + i) % 8]] == '1') {
-	 r += dr[(pr + i) % 8];
-	 c += dc[(pr + i) % 8];
-	 pr = (pr + i + 4) % 8;
+      int index = (pr + i) % 8;
+      if(board[r + dr[index]][c + dc[index]] == '1') {
+	 r += dr[index];
+	 c += dc[index];
+	 pr = (index + 4) % 8;
 	 return;
       }
    }
    return;
 }
 
-int traceContour(const int &r, const int &c, int& moves) {
+bool traceContour(const int &r, const int &c, int& moves) {
+   bool newpoint = false;
    int sr = r, sc = c, pr = 0;
    bool visited[202][202];
-   moves = 1;
 
-   //cout << "r: " << r << " c: " << c << endl;
+//   cout << boolalpha;
    for(int i = 1; i <= rows; ++i) {
       for(int j = 1; j <= cols; ++j) {
 	 visited[i][j] = false;
+	 cout << contour[i][j] << ' ';
       }
+      cout << endl;
    }
+   cout << endl;
+   newpoint = newpoint || contour[r][c];
    contour[r][c] = visited[r][c] = true;
-
-   //cout << "r: " << r << " c: " << c << " pr: " << pr << endl;
+   
+   moves = 1;
    move(sr,sc, pr);
    while(!(sr == r && sc == c)) {
-      // cout << "sr: " << sr << " sc: " << sc << " pr: " << pr << endl;
+      ++moves;
+      newpoint = newpoint || contour[sr][sc];
       contour[sr][sc] = visited[sr][sc] = true;
       move(sr, sc, pr);
-      ++moves;
    }
-   // fill in the contour
-   /*
-     int pixels = 0;
+   if(!newpoint) {
+      return false;
+   }
+   int pixels = 0;
    for(int i = 1; i <= rows; ++i) {
       for(int j = 1; j <= cols; ++j) {
 	 if(visited[i][j]) {
-	    ++pixels;
-	    int w = j + 1;
-	    for(; w <=cols; ++w) {
+	    pixels += 1;
+	    int w;
+	    for( w = j + 1; w <= cols; ++w) {
 	       if(visited[i][w]) {
-		  fill(visited[i] + j, visited[i] + w, true);
-		  fill(contour[i] + j, contour[i] + w, true);
-		  pixels += w - j;
-		  //cout << "w - j: " << w - j << endl;
-		  break;
+		  if(board[i][(w - j)/2 + j] == '1') {
+		     for(int q = j; q <= w; ++q) {
+			contour[i][q] = visited[i][q] = true;
+		     }
+		     pixels += w - j;
+		     break;
+		  } else {
+		     pixels++;
+		     break;
+		  }
 	       }
 	    }
 	    j = w;
 	 }
       }
-      }
-   */
-/*   for(int i = 1; i <= rows; ++i) {
-      for(int j = 1; j <= cols; ++j) {
-	 cout << visited[i][j] << " ";
-      }
-      cout << endl;
    }
-   cout << "pixels: " << pixels << endl;
-*/ 
-   return pixels;
+
+   return (pixels >= 5) && newpoint;
 }
 
 int main() {
@@ -102,27 +105,11 @@ int main() {
       int r = 2, c = 3, pr = 0;
       move(r, c, pr);
       for(int i = 1; i <= rows; ++i) {
-	 for(int j = 1; j <=cols; ++j) {
+	 for(int j = 1; j <= cols; ++j) {
 	    if(board[i][j] == '1') {
-	       if(!contour[i][j]) {
-		  //cout << "i: " << i << " j: " << j << endl;
-		  int trace;
-		  if(traceContour(i, j, trace) >= 5) {
-		     ans.push_back(trace);
-		  }
-		  for(int w = j + 1; w <= cols; ++w) {
-		     if(board[i][j] == '0') {
-			j = w - 1;
-			break;
-		     }
-		  }
-	       } else {
-		  for(int w = j + 1; w <= cols; ++w) {
-		     if(board[i][j] == '0') {
-			j = w - 1;
-			break;
-		     }
-		  }
+	       int trace;
+	       if(traceContour(i, j, trace)) {
+		  ans.push_back(trace);
 	       }
 	    }
 	 }
