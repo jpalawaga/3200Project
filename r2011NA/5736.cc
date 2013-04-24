@@ -39,19 +39,20 @@ bool traceContour(const int &r, const int &c, int& moves) {
    for(int i = 1; i <= rows; ++i) {
       for(int j = 1; j <= cols; ++j) {
 	 visited[i][j] = false;
-	 cout << contour[i][j] << ' ';
+	 //	 cout << contour[i][j] << ' ';
       }
-      cout << endl;
+      // cout << endl;
    }
-   cout << endl;
-   newpoint = newpoint || contour[r][c];
+   //cout << endl;
+  
+   newpoint = newpoint || !contour[r][c];
    contour[r][c] = visited[r][c] = true;
    
    moves = 1;
    move(sr,sc, pr);
    while(!(sr == r && sc == c)) {
       ++moves;
-      newpoint = newpoint || contour[sr][sc];
+      newpoint = newpoint || !contour[sr][sc];
       contour[sr][sc] = visited[sr][sc] = true;
       move(sr, sc, pr);
    }
@@ -82,8 +83,7 @@ bool traceContour(const int &r, const int &c, int& moves) {
 	 }
       }
    }
-
-   return (pixels >= 5) && newpoint;
+   return (pixels >= 5);
 }
 
 int main() {

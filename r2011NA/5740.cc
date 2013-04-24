@@ -215,22 +215,17 @@ int main() {
    Date Svac[105];
    Date Evac[105];
    while(cin >> start >> land) {
-      // cout << "start: " << start << " " << land << endl;
       int n;
       cin >> n;
       for(int i = 0; i < n; ++i) {
 	 cin >> Svac[i] >> Evac[i];
       }
-/*      for(int i = 0; i < n; ++i) {
-	 cout << "vac: " << Svac[i] << " " << Evac[i] << endl;
-      }
-*/  
+
       int dayTotal[20000];
       int total = 0;
       Date curr = Date(1980, 1, 1);
       int begin = 0, end = 0;
       while((total/2) < 1095) {
-//	 if (total > 0) cout << total/2 << endl;
 	 if(end - begin >= 1460) {
 	    total -= dayTotal[begin++];
 	 }
@@ -241,6 +236,7 @@ int main() {
 	       isVac = true;
 	       dayTotal[end] = 0;
 	       curr.addDay();
+	       break;
 	    }
 	 }
 	 if(!isVac) {
@@ -259,10 +255,6 @@ int main() {
 	 }
 	 ++end;
       }
-      for(int i = 0; i < 20000; ++i) {
-	 cout << dayTotal[i] << " ";
-      }
- 
    cout << curr << endl;
    }
    return 0;
